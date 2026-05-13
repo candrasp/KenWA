@@ -116,7 +116,199 @@ IPC.onBlastDone((payload) => {
 });
 
 // ── Mulai aplikasi ─────────────────────────────────────────────────────────
+import { AppConfig } from './services/api.js';
+
+async function initSecurity(config) {
+  // 1. Matikan klik kanan secara global jika dinonaktifkan
+  document.addEventListener('contextmenu', (e) => {
+    if (!config.right_click) {
+      // Kecuali pada input/textarea
+      const isInput = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+      if (isInput) {
+        // Tampilkan custom context menu (Copy/Paste saja)
+        showCustomContextMenu(e);
+      }
+      e.preventDefault();
+    }
+  });
+
+  // 2. Matikan Inspect Element (F12, Ctrl+Shift+I, dll)
+  if (!config.inspect_element) {
+    document.addEventListener('keydown', (e) => {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+        (e.ctrlKey && e.key === 'U')
+      ) {
+        e.preventDefault();
+      }
+    });
+  }
+
+  // 3. Simpan config global agar bisa diakses modul lain
+  window.appConfig = config;
+}
+
+function showCustomContextMenu(e) {
+  let menu = document.getElementById('custom-ctx-menu');
+  if (!menu) {
+    menu = document.createElement('div');
+    menu.id = 'custom-ctx-menu';
+    menu.style.cssText = `
+      position: fixed;
+      z-index: 10000;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 4px 0;
+      min-width: 120px;
+      box-shadow: var(--shadow-lg);
+    `;
+    document.body.appendChild(menu);
+  }
+
+  menu.innerHTML = `
+    <div class="ctx-item" style="padding: 8px 16px; cursor: pointer; color: var(--text-main); font-size: 13px;" onclick="document.execCommand('copy')">Copy</div>
+    <div class="ctx-item" style="padding: 8px 16px; cursor: pointer; color: var(--text-main); font-size: 13px;" onclick="document.execCommand('paste')">Paste</div>
+  `;
+
+  menu.style.left = `${e.pageX}px`;
+  menu.style.top = `${e.pageY}px`;
+  menu.style.display = 'block';
+
+  // Hover effects
+  const items = menu.querySelectorAll('.ctx-item');
+  items.forEach(item => {
+    item.onmouseenter = () => item.style.background = 'rgba(255,255,255,0.05)';
+    item.onmouseleave = () => item.style.background = 'transparent';
+  });
+
+  const closeMenu = () => {
+    menu.style.display = 'none';
+    document.removeEventListener('click', closeMenu);
+  };
+  setTimeout(() => document.addEventListener('click', closeMenu), 10);
+}
+
+async function checkAutoUpdate(config) {
+  if (config.update_enabled === false) return;
+
+  const tauri = window.__TAURI__;
+  const updater = tauri?.updater || tauri?.plugins?.updater;
+  if (!tauri || !updater) return;
+
+  try {
+    const update = await updater.check();
+    if (update && update.available) {
+      showForcedUpdateModal(update);
+    }
+  } catch (err) {
+    console.error('[AutoUpdate] Gagal cek update:', err);
+  }
+}
+
+function showForcedUpdateModal(update) {
+  // Buat overlay modal yang tidak bisa ditutup
+  const overlay = document.createElement('div');
+  overlay.id = 'forced-update-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-6);
+  `;
+
+  overlay.innerHTML = `
+    <div class="settings-card" style="max-width: 450px; width: 100%; border: 1px solid var(--warning);">
+      <div class="settings-card-header" style="background: rgba(245, 158, 11, 0.1); border-bottom: 1px solid rgba(245, 158, 11, 0.2);">
+        <i class='bx bx-error-circle' style="color: var(--warning);"></i>
+        <h2 style="color: var(--warning);">Update Wajib Tersedia</h2>
+      </div>
+      <div class="settings-card-body" style="text-align: center;">
+        <p style="margin-bottom: var(--space-4); color: var(--text-main);">
+          Versi baru <b>v${update.version}</b> telah tersedia. 
+        </p>
+        <p style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: var(--space-6); line-height: 1.6;">
+          Pembaruan ini sangat penting untuk menjaga kompatibilitas dengan algoritma WhatsApp terbaru. Aplikasi tidak dapat digunakan hingga Anda melakukan pembaruan.
+        </p>
+        
+        <div id="forced-update-progress" style="display: none; margin-bottom: var(--space-4);">
+          <div class="update-progress-text">
+            <span>Mengunduh pembaruan...</span>
+            <span id="forced-percent">0%</span>
+          </div>
+          <div class="update-progress-bar">
+            <div id="forced-fill" class="update-progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <button id="btn-forced-update" class="btn btn-primary" style="width: 100%; background: var(--warning); color: #000; font-weight: 700; padding: var(--space-4);">
+          <i class='bx bx-cloud-download'></i> Update Sekarang
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const btn = document.getElementById('btn-forced-update');
+  const progressContainer = document.getElementById('forced-update-progress');
+  const progressFill = document.getElementById('forced-fill');
+  const progressPercent = document.getElementById('forced-percent');
+
+  btn.onclick = async () => {
+    try {
+      btn.disabled = true;
+      btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Menyiapkan...";
+      progressContainer.style.display = 'block';
+
+      await update.downloadAndInstall((event) => {
+        const tauri = window.__TAURI__;
+        const process = tauri?.process || tauri?.plugins?.process;
+
+        switch (event.event) {
+          case 'Progress':
+            const chunkLength = event.data.chunkLength;
+            const contentLength = event.data.contentLength;
+            if (contentLength) {
+              const percent = Math.round((chunkLength / contentLength) * 100);
+              progressFill.style.width = `${percent}%`;
+              progressPercent.textContent = `${percent}%`;
+              btn.innerHTML = `<i class='bx bx-loader-alt bx-spin'></i> Mengunduh (${percent}%)`;
+            }
+            break;
+          case 'Finished':
+            btn.innerHTML = "<i class='bx bx-check'></i> Selesai! Me-restart...";
+            if (process) {
+              setTimeout(() => process.relaunch(), 1500);
+            }
+            break;
+        }
+      });
+    } catch (err) {
+      console.error('[ForcedUpdate] Error:', err);
+      btn.disabled = false;
+      btn.innerHTML = "<i class='bx bx-error'></i> Gagal, Coba Lagi";
+    }
+  };
+}
+
 (async () => {
+  // Load config pertama kali
+  try {
+    const config = await AppConfig.get();
+    initSecurity(config);
+    // Jalankan cek update otomatis setelah 3 detik aplikasi dibuka
+    setTimeout(() => checkAutoUpdate(config), 3000);
+  } catch (err) {
+    console.error('Gagal memuat config aplikasi', err);
+  }
+
   await syncStatus();
   // Sync status setiap 15 detik sebagai fallback
   setInterval(syncStatus, 15000);

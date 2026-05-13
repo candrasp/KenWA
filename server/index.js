@@ -1,5 +1,7 @@
 'use strict';
 
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+
 const express   = require('express');
 const cors      = require('cors');
 const path      = require('path');
@@ -34,6 +36,15 @@ app.use('/api/blast',    blastRoutes);
 app.use('/api/tags',     tagRoutes);
 app.use('/api/settings', settingRoutes);
 app.use('/api/activity', activityRoutes);
+
+app.get('/api/config', (req, res) => {
+  res.json({
+    right_click: process.env.APP_RIGHT_CLICK_ENABLED === 'true',
+    inspect_element: process.env.APP_INSPECT_ELEMENT_ENABLED === 'true',
+    update_enabled: process.env.APP_UPDATE_ENABLED !== 'false', // Default true
+    debug_log: process.env.APP_DEBUG_LOG_ENABLED === 'true'
+  });
+});
 
 // ── SSE Bridge for Events ───────────────────────────────────────────────────
 app.get('/api/events', (req, res) => {

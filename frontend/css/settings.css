@@ -191,8 +191,18 @@ input[type=number] {
 
 .update-actions {
     display: flex;
-    gap: var(--space-3);
-    margin-top: var(--space-4);
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+}
+
+.update-actions .btn {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-3);
+    font-size: var(--text-sm);
 }
 
 .checking-status {

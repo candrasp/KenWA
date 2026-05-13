@@ -7,6 +7,13 @@
     "core:default",
     "shell:allow-spawn",
     "shell:allow-execute",
+    {
+      "identifier": "shell:allow-open",
+      "allow": [
+        { "url": "https://wa.me/*" },
+        { "url": "mailto:*" }
+      ]
+    },
     "os:default",
     "updater:default",
     "process:allow-restart"

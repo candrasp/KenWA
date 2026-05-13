@@ -261,3 +261,30 @@ card 3 : Cek update software.
                 - tombol install update (jika ada update)
 
 logika update mengikuti tauri updater dan di update diambil rari repository github.com/candrasp/KenWa/releases
+
+buat file .env di root yang fungsinya 
+
+- mematikan dan mengaktifkan fungsi klik kanan di aplikasi
+- mematikan dan mengaktifkan fungsi inspect element
+- mematikan dan mengaktifkan update
+- mematikan dan mengaktifkan debug log
+
+matikan fungsi klik kanan di aplikasi, hanya fungsikan klik kanan di form input dan hanya menampilkan copy dan paste. 
+
+
+Sekarang kita fokus di page help
+
+hilangkan Bagaimana cara menghubungkan WhatsApp?
+
+ubah menjadi bagaimana menambahkan kontak dan tags?
+- secara manual.
+- secara import
+- secara sync wa
+
+ubah Bagaimana cara mengirim pesan massal (Blast)? 
+
+-jelaskan fungsi #,@,@all di form kirim blast.
+-jelaskan fungsi {{nama}} pada pesan text.
+-jelaskan fungsi template.
+
+

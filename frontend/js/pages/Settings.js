@@ -101,13 +101,12 @@ const Settings = {
         </div>
 
         <!-- Card 3: Cek Update Software -->
-        <div class="settings-card">
+        <div class="settings-card" style="${window.appConfig?.update_enabled === false ? 'display: none;' : ''}">
           <div class="settings-card-header">
             <i class='bx bx-cloud-download'></i>
             <h2>Update Software</h2>
           </div>
           <div class="settings-card-body">
-            <div class="update-info">
             <div class="update-info">
               <div class="software-info-item" style="justify-content: center; border-bottom: none; padding-top: 0;">
                 <span class="info-value" style="font-size: 13px; color: var(--text-muted);">KenWA — WhatsApp Blaster</span>

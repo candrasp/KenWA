@@ -6,7 +6,7 @@ const path = require('path');
 const logFile = path.join(__dirname, '..', 'server.log');
 
 const logger = pino({
-  level: process.env.LOG_LEVEL || 'debug', // Turunkan ke debug agar Baileys log lebih terlihat
+  level: process.env.APP_DEBUG_LOG_ENABLED === 'true' ? 'debug' : 'silent',
   transport: {
     targets: [
       {

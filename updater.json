@@ -1,6 +1,6 @@
 {
-  "version": "1.1.0",
-  "notes": "SIMULASI UPDATE: Perbaikan fitur blasting dan optimasi performa dashboard.",
+  "version": "1.0.0",
+  "notes": "SIMULASI UPDATE: Perbaikan fitur blasting dan optimasi performa dashboard v1.1.1.",
   "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM5ODA0NzE1ODgzMzc2QjQKUldTMGRqT0lGVWVBeVZIZUFoc3gwdFlUQ0tzY1EvVmx4OElzYUhIdGVCQW5JclJPR205UFNxQlcK",
   "platforms": {
     "windows-x86_64": {

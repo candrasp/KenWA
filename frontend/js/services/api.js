@@ -79,6 +79,10 @@ export const SettingAPI = {
   update: (data) => request('PUT', '/settings', data),
 };
 
+export const AppConfig = {
+  get:    ()     => request('GET', '/config'),
+};
+
 // ── Health ───────────────────────────────────────────────────────────────────
 export const health = () => request('GET', '/health');
 
