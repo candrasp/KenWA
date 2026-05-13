@@ -1,0 +1,22 @@
+
+install di folder ini tauri v2, Expressjs, baileys dan sqlite3.
+dengan struktur folder sepeti ini :
+
+src-tauri/ — jangan taruh logic bisnis di sini. Isinya hanya: spawn server Node.js via sidecar, daftarkan IPC commands (invoke dari frontend ke Rust), dan konfigurasi window/tray/permissions.
+server/ — backend berdiri sendiri, bisa dijalankan terpisah dengan node index.js. Diorganisir ala MVC:
+
+routes/ → definisi endpoint Express
+controllers/ → terima request, validasi, panggil service
+services/ → logika Baileys (koneksi WA, kirim/terima pesan, QR)
+models/ → query SQLite3 (pakai better-sqlite3 direkomendasikan untuk sinkron)
+utils/ipc.bridge.js → jembatan kirim event dari Node.js ke Tauri window (via tauri://localhost)
+
+frontend/ — SPA vanilla, tidak ada bundler wajib. Tauri tinggal set distDir ke folder ini.
+
+js/router.js → router SPA manual (hash-based atau History API)
+js/pages/ → satu file per halaman, di-mount oleh router
+js/components/ → komponen reusable (modal, toast, sidebar)
+js/services/api.js → semua fetch ke Express; ipc.js → semua __TAURI__.invoke()
+css/variables.css → CSS custom properties (warna, font, spacing) — import pertama
+
+sessions/ (di dalam server/) → Baileys menyimpan auth state (kredensial WA) per nomor di sini. Jangan di-gitignore secara tidak sengaja jika ingin session persisten, tapi jangan di-commit ke repo karena sensitif.

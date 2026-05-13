@@ -1,0 +1,263 @@
+saya akan membuat aplikasi tauri v2 dengan node js dan express js 
+- tauri v2 sebagai frontend 
+- node js dan express js sebagai backend 
+- sqlite3 sebagai database
+
+fokus ke desain user interface yang modern dan responsif menggunakan native js tanpa framework
+
+struktur folder sebagai berikut:
+- server
+    berisi kode server node js dan express js 
+- src
+    berisi kode frontend menggunakan tauri v2 dan native js tanpa framework 
+
+
+sekarang kita fokus pada fitur kontak, kita mulai dari desain nya dulu :
+
+dalam kontak ada dua tab 
+
+tab pertama bernama daftar kontak berisi fitur :
+
+button tambah kontak
+button import Kontak dari file csv, excel 
+button sync kontak dari whatsapp.
+list kontak dengan tabel :
+nama, nomor, tags, action (button edit dan hapus )
+
+tab kedua bernama daftar tags berisi fitur :
+
+button tambah tags 
+list tags dengan tabel 
+nama tags, jumlah kontak, action (button edit dan hapus )
+
+dalam button tambah kontak 
+menggunakan modal
+dalam modal ada 
+nama 
+nomor whatsapp 
+tags (opsional)
+
+dalam button tambah tags 
+menggunakan modal
+dalam modal ada 
+nama tags 
+discription (opsional)
+
+menu tambah kontak, import dan sync whatsapp letakan di sebelah kanan form pencarian begitu juga di tags
+
+di modal tambah kontak, fungsi tags menampilkan data dari tag seperti radio yang bisa di pilih,
+model tampilan seperti badge yang bisa di klik untuk mengaktifkan dan menonaktifkan nya, jika dipilih warna nya menjadi cerah hijau active dan jika dinonaktifkan warna nya menjadi abu abu, text nya putih 
+
+logika di databse 1 tags bisa beberapa kontak, dan 1 kontak bisa memiliki beberapa tags. 
+kemudian setiap user memiliki kontak dan tags nya sendiri, jadi kontak dan tags tidak bisa di share antar user begitupun template pesan juga.
+
+owh saya lupa, seharusnya di database kontak ada kolom ferifikasi nomor, apakah nomor tersebut sudah terdaftar di whatsaap atau belum, fungsi ini sangat bagus agar memfilter nomor, kemudian di tabel list kontak tambahkan th ini, dengan tampilan data nantinya terdaftar atau tidak dengan badge, jika terdaftar badge su
+
+
+di tab kontak depan tombol tambah kontak, tambahkan tombol verifikasi, yang fungsinya akan memverifikasi nomor whatsapp yang ada di database, apakah nomor tersebut sudah terdaftar di whatsaap atau belum,
+dengan menampilkan badge apakah nomor tersebut terdaftar atau tidak, warna badge terdaftar hijau dan tidak terdaftar merah, belum verifikasi abu abu. 
+
+jadi logika di data base untuk verifikasi nomor adalah : 
+status_verifikasi : 
+0 = belum verifikasi, 1 = terverifikasi, 2 = gagal verifikasi 
+
+kemudian tambahkan tabel settings di database yang digunakan untuk menyimpan pengaturan :
+- delay pengiriman pesan blast,satuan nya detik milliseconds. 
+- delay verifikasi nomor, satuan nya detik milliseconds. 
+- random delay pengiriman pesan blast, satuan nya detik milliseconds. 
+- random delay verifikasi nomor, satuan nya detik milliseconds. 
+
+fungsi random ini gunanya untuk mengirim pesan blast secara acak, jadi pesan blast tidak akan terkirim secara berurutan, ini untuk menghindari terdeteksi spam.
+
+kemudian masukkan ke database tabel settings : blast_delay, verification_delay, random_blast_delay, random_verification_delay, 
+default nya adalah : blast_delay = 7000, verification_delay = 5000, random_blast_delay = 2000, random_verification_delay = 2000
+data ini akan selalu ada karena defalut, jadi saat database baru dibuat data ini sudah ada, dan setiap user memiliki data ini sendiri, jadi data ini tidak bisa di share antar user.
+
+format data contacts dari sync:
+ "6285232872782@s.whatsapp.net": {
+    "id": "6285232872782@s.whatsapp.net",
+    "notify": "Anik",
+    "name": "Anik Nglarik",
+    "lid": "250340876263586@lid",
+    "phoneNumber": "6285232872782@s.whatsapp.net"
+  },
+  "6281262620000@s.whatsapp.net": {
+    "id": "6281262620000@s.whatsapp.net",
+    "notify": "Leo Chips Agen"
+  },
+
+  jadi logikanya saat sync kontak, system hanya mengambil nomor wa yang berformat 
+  @s.whatsapp.net contohnya "id": "6285232872782@s.whatsapp.net"
+  kemudian jika ada data name makas impan name contoh "name": "Anik Nglarik" ke kolom nama di database, 
+  jika tidak ada data name, maka simpan data dari notify contoh "notify": "Anik" ke kolom nama di database.
+  
+  masih ada kesalah :
+
+  jika baileys mencoba menyambungkan ulang ke whatsapp :
+
+  [10:38:58] WARN (12504): [WA] Koneksi terputus
+    reason: 428
+    isStreamError: false
+    error: "Connection Terminated"
+[10:38:58] INFO (12504): [WA] Reconnect dalam 5 detik...
+[10:39:03] INFO (12504): [WA] Socket lama dibersihkan.
+[10:39:03] INFO (12504): [WA] Memulai koneksi...
+[10:39:03] INFO (12504): [WA] Menggunakan WA v2.3000.1035194821 (isLatest: true)
+[10:39:04] INFO (12504): connected to WA
+ module: "baileys"
+    browser: [
+      "Mac OS",
+      "Desktop",
+      "14.4.1"
+    ]
+    helloMsg: {
+      "clientHello": {
+        "ephemeral": "Zv6xAdHLVE6xfKTjiMFfFr9Z540mmidbl0HR2CTovzg="
+      }
+    }
+[10:39:04] INFO (12504): logging in...
+    module: "baileys"
+    node: {
+      "username": "6285156548398",
+      "passive": true,
+      "userAgent": {
+        "platform": "WEB",
+        "appVersion": {
+          "primary": 2,
+          "secondary": 3000,
+          "tertiary": 1035194821
+        },
+        "mcc": "000",
+        "mnc": "000",
+        "osVersion": "0.1",
+        "device": "Desktop",
+        "osBuildNumber": "0.1",
+        "releaseChannel": "RELEASE",
+        "localeLanguageIso6391": "en",
+        "localeCountryIso31661Alpha2": "US"
+      },
+      "webInfo": {
+        "webSubPlatform": "DARWIN"
+      },
+      "connectType": "WIFI_UNKNOWN",
+      "connectReason": "USER_ACTIVATED",
+      "device": 81,
+      "pull": true,
+      "lidDbMigrated": false
+    }
+[10:39:05] INFO (12504): 812 pre-keys found on server
+    module: "baileys"
+[10:39:05] INFO (12504): Current prekey ID: 812, exists in storage: true
+    module: "baileys"
+[10:39:05] INFO (12504): PreKey validation passed - Server: 812, Current prekey 812 exists
+    module: "baileys"
+[10:39:05] INFO (12504): handled 0 offline messages/notifications
+    module: "baileys"
+[10:39:05] INFO (12504): Connection is now AwaitingInitialSync, buffering events
+    module: "baileys"
+[10:39:05] INFO (12504): Reconnection with existing sync data, skipping history sync wait. Transitioning to Online.
+    module: "baileys"
+[10:39:06] INFO (12504): opened connection to WA
+    module: "baileys"
+[10:39:06] INFO (12504): [WA] Terhubung!
+
+tampilan aplikasi langsung ke halaman login, seharunya proses Reconnection hanya berjalan di latar belakang, tidak mengganggu tampilan aplikasi.
+atau hanya mengubah tampilan status apakah whatsapp sedang terhubung atau tidak di foter sidebar, dalam kondisi normal ia akan menampilkan ● Connected, namun saat terjadi hal seperti diatas ia akan menampilkan ● Reconnecting...., lalu saat proses reconec selesai ia akan menampilkan ● Connected lagi.
+
+jadi halaman tetap berada di dashboard tidak loncat loncat ke halaman login saat terjadi proses Reconnection
+
+ada bug di pagging :
+Jika misalnya data total ada 30 dan page ada 3, ketika saya ke page tiga atau menghapus semua data di page terakhir dengan select all, seharusnya page akan pindah ke page sebelumnya yaitu page 2, tetapi ini malah tetap di page tersebut dan data nya menjadi kosong, 
+
+apakah ketika reconekting halaman aplikasi atau index akan di refresh? 
+karena ketika saya berada di halaman kontak dan terjadi proses reconnect dan berhasil connect lagi, halaman tersebut akan refresh dan saya kembali ke halaman Dashboard.
+
+sekarang penerapan logika baru: 
+jika reconecting tombol sync wa menjadi disable tidak bisa di klik.
+
+kemudian jika verifikasi nomor sedang berjalan maka tombol sync wa, import, tambah kontak,  menjadi disable tidak bisa di klik.
+kemudian dan tombol verifikasi icon berubah menjadi spiner dan di disabled.
+
+setelah import kontak, tambah kontak, dan sync wa selesai, render tombol verifikasi nomor dan jalankan secara otomatis verifikasi nomor.
+
+
+Sekarang kita fokus dalam pengembangan page blash.
+
+di page blash ada 2 tab, yaitu kirim balst, dan template.
+
+di kirim blast : 
+- form 1 : Kirim ke 
+  -  jika # akan menampilkan sugesti tag, 
+  - jika @ akan menampilkan sugesti nama kontak.
+  - jika mengetik nomor langsung misal 08124xxxx maka tidak menampilkan sugesti.
+  -format penulisan, #tags,@nama,nomor.
+
+di form 2 : Pesan text
+  - from log text dengan maksimal 3000 kata.
+  - di atas text area tambahkan emotkon, tambahkan template.
+
+kemudian di bawahnya ada tombol kirim blast.
+
+Logika tombol kirim blast: 
+- Tombol terdisable jika form 1 dan form 2 kosong.
+- Tombol terdisable jika sedang dalam proses kirim blast.
+- Tombol terdisable jika sedang dalam proses reconecting.
+- Tombol terdisable jika sedang dalam proses verifikasi nomor.
+- Tombol enable jika form 1 dan form 2 terisi.
+- Tombol enable jika tidak sedang dalam proses kirim blast.
+- Tombol enable jika tidak sedang dalam proses reconecting.
+- Tombol enable jika tidak sedang dalam proses verifikasi nomor.
+
+tab template 
+    - tombol tambah template  
+    - table template 
+        - kolom nama 
+        - kolom pesan
+        - kolom aksi
+
+di kolom aksi :
+    - tombol gunakan template.
+    - tombol edit template 
+    - tombol hapus template 
+   
+seharusnya tabel blast_history menyimpan data :
+    - nama jika nomor sudah tersimpan di database kontak, jika tidak simpan unknown.
+    - nomor jika sudah tersimpan di database kontak, jika tidak simpan nomor saja.
+    - pesan yang dikirim
+    - status  'failed', 'success'
+    - user_id
+    - created_at
+    - updated_at 
+
+
+Sekarang kita fokus ke page settings, di page settings ada 3 card :
+
+card 1 : pengaturan blast
+  - blast_delay
+  - blast_random_delay
+
+card 2 : pengaturan verifikasi nomor
+  - verification_delay
+  - verification_random_delay
+
+card 3 : Cek update software.
+    - tombol cek update 
+    - menampilkan info software (nama, versi, status update)
+    - status update : "UP-TO-DATE" atau "UPDATE AVAILABLE"
+
+    saat tombol cek update di klik:
+        - icon berubah menjadi spiner
+        - disabled tombol cek update
+        - menampilkan info proses "Checking for updates..."
+
+        saat selesai:
+            - icon kembali menjadi semula
+            - enabled tombol cek update
+            - menampilkan info update :
+                - versi saat ini
+                - versi baru
+                - status "UP-TO-DATE" atau "UPDATE AVAILABLE"
+                - tombol download update
+                - tombol install update (jika ada update)
+
+logika update mengikuti tauri updater dan di update diambil rari repository github.com/candrasp/KenWa/releases

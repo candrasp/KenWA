@@ -1,0 +1,55 @@
+# ── Node.js & Security ────────────────────────────────────────────────────────
+node_modules/
+server/node_modules/
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Project Specific ──────────────────────────────────────────────────────────
+server/data/
+server/data/auth/
+*.csv
+public-key.md
+cara-updater.md
+
+# ── Tauri / Rust ─────────────────────────────────────────────────────────────
+src-tauri/target/
+src-tauri/gen/
+src-tauri/binaries/
+
+# ── Build Artifacts ──────────────────────────────────────────────────────────
+dist/
+build/
+out/
+bin/
+*.exe
+*.msi
+*.dmg
+*.AppImage
+*.deb
+*.rpm
+*.zip
+*.tar.gz
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ── Editor ────────────────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+.history/

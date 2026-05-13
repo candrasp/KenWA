@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "notes": "Initial release of KenWA with Dashboard, Contacts, Blast, and Settings modules.",
+  "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM5ODA0NzE1ODgzMzc2QjQKUldTMGRqT0lGVWVBeVZIZUFoc3gwdFlUQ0tzY1EvVmx4OElzYUhIdGVCQW5JclJPR205UFNxQlcK",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "",
+      "url": "https://github.com/candrasp/KenWa/releases/latest/download/KenWA_x64_en-US.msi.zip"
+    },
+    "linux-x86_64": {
+      "signature": "",
+      "url": "https://github.com/candrasp/KenWa/releases/latest/download/kenwa_amd64.AppImage.tar.gz"
+    },
+    "darwin-x86_64": {
+      "signature": "",
+      "url": "https://github.com/candrasp/KenWa/releases/latest/download/KenWA_x64.app.tar.gz"
+    },
+    "darwin-aarch64": {
+      "signature": "",
+      "url": "https://github.com/candrasp/KenWa/releases/latest/download/KenWA_aarch64.app.tar.gz"
+    }
+  }
+}

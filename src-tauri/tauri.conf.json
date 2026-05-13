@@ -1,0 +1,50 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "KenWA",
+  "version": "1.0.0",
+  "identifier": "id.kenwa.app",
+  "build": {
+    "frontendDist": "../frontend",
+    "devUrl": "http://127.0.0.1:3721",
+    "beforeDevCommand": "node server/index.js",
+    "beforeBuildCommand": ""
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "KenWA — WhatsApp Blaster",
+        "width": 1280,
+        "height": 660,
+        "minWidth": 960,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' http://127.0.0.1:3721; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM5ODA0NzE1ODgzMzc2QjQKUldTMGRqT0lGVWVBeVZIZUFoc3gwdFlUQ0tzY1EvVmx4OElzYUhIdGVCQW5JclJPR205UFNxQlcK",
+      "endpoints": [
+        "https://raw.githubusercontent.com/candrasp/KenWa/master/updater.json"
+      ]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

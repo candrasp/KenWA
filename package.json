@@ -1,0 +1,28 @@
+{
+  "name": "kenwa",
+  "version": "1.0.0",
+  "description": "KenWA - WhatsApp Blaster powered by Tauri v2 + Express + Baileys",
+  "private": true,
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "server": "node server/index.js",
+    "server:dev": "nodemon server/index.js"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.1",
+    "nodemon": "^3.1.14"
+  },
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/candrasp/KenWa.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/candrasp/KenWa/issues"
+  },
+  "homepage": "https://github.com/candrasp/KenWa#readme"
+}
