@@ -1,10 +1,10 @@
 {
-  "version": "1.0.0",
-  "notes": "Initial release of KenWA with Dashboard, Contacts, Blast, and Settings modules.",
+  "version": "1.1.0",
+  "notes": "SIMULASI UPDATE: Perbaikan fitur blasting dan optimasi performa dashboard.",
   "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM5ODA0NzE1ODgzMzc2QjQKUldTMGRqT0lGVWVBeVZIZUFoc3gwdFlUQ0tzY1EvVmx4OElzYUhIdGVCQW5JclJPR205UFNxQlcK",
   "platforms": {
     "windows-x86_64": {
-      "signature": "",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmaWxlClJXU1RZMEl5ckFCcTE3alQzNEZlWVllWWpuTnNXOW8rTm1wTlRtY0dJQmxoeFo0d3ArOEFBQkFBQUFBQUFBQUFBQUlBQUFBQXJ0SFNEL2syUDdUaTk0d2dYYXROaEQvMTllNXljWk5aRmMzYzMwT0IrazlrenZHeHNka0lFYjRzTGo5S3lnVjBhWVE5VlBYMnUxbk5qU2FqdVlPcUZTMEgrT3lqUmJGd3NLaWVDNEVmWmhqeS9IQnJVUEhFaW1GY3hrb3c4VWhLeW1Ea1QySzRHTnc9Cg==",
       "url": "https://github.com/candrasp/KenWa/releases/latest/download/KenWA_x64_en-US.msi.zip"
     },
     "linux-x86_64": {
