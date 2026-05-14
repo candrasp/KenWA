@@ -18,8 +18,8 @@ const config = {
   development: {
     right_click: true,
     inspect_element: true,
-    update_enabled: false,
-    debug_log: true
+    update_enabled: true,
+    debug_log: false // true untuk development untuk manapilkan log di terminal
   },
 
   // Pengaturan saat aplikasi sudah di-build (NSIS/Production)

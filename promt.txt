@@ -8,3 +8,17 @@ maka tombol akan menjadi tombol stop server dan button itu berwarna denger
 
 buat system tray, dimana hanya menampilkan start stop dan quit dan paling atas ada nama aplikasi kenwa
 jadi window utama boleh di minimize atau close dan tidak mematikan server
+
+
+logika baru :
+ketika aplikasi pertama kali dijalankan buat tombol start server menjadi loading 
+di sisi backend mendeteksi di folder root server apakah ada folder "data" atau belum 
+jika belum ada maka buat folder "data" dan sub nya ada folder "auth"
+dan menampilkan pesan 
+KenWA is initializing...
+setelah selesai membuat folder (jika belum ada) maka tombol start kembali ready dan aplikasi siap di gunakan
+
+fungsi ini bertujuan agar jika saya malakukan update data tidak hilang.
+
+
+

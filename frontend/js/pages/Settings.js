@@ -146,7 +146,7 @@ const Settings = {
                   <i class='bx bx-refresh' id="check-icon"></i> Cek Update
                 </button>
                 <button class="btn btn-success" id="btn-download-update" style="display: none;">
-                  <i class='bx bx-download'></i> Download & Install
+                  <i class='bx bx-download'></i> Download dari GitHub
                 </button>
               </div>
             </div>
@@ -288,35 +288,45 @@ const Settings = {
     btnDownload.style.display = 'none';
 
     try {
-      const tauri = window.__TAURI__;
-      const updater = tauri?.updater || tauri?.plugins?.updater;
+      const response = await fetch('https://api.github.com/repos/candrasp/KenWa/releases/latest');
+      if (!response.ok) throw new Error('Gagal menghubungi GitHub API');
       
-      if (!tauri || !updater) {
-          // Simulasi jika tidak di tauri
-          await new Promise(r => setTimeout(r, 2000));
+      const release = await response.json();
+      const latestVersion = release.tag_name.replace('v', '');
+      const currentVersion = this.updateInfo.currentVersion.replace('v', '');
+
+      const isNewer = this.isNewerVersion(currentVersion, latestVersion);
+      
+      if (isNewer) {
+          this.updateInfo.newVersion = latestVersion;
+          this.updateInfo.url = release.html_url;
+          this.setUpdateStatus('AVAILABLE', latestVersion);
+          Toast.info('Pembaruan tersedia!');
+      } else {
           this.setUpdateStatus('UP_TO_DATE');
           Toast.success('Software Anda sudah versi terbaru.');
-      } else {
-          // Tauri v2 Updater Logic
-          const update = await updater.check();
-          
-          if (update && update.available) {
-              this.updateInfo.newVersion = update.version;
-              this.setUpdateStatus('AVAILABLE', update.version);
-              Toast.info('Pembaruan tersedia!');
-          } else {
-              this.setUpdateStatus('UP_TO_DATE');
-          }
       }
     } catch (err) {
       console.error('[Settings] Gagal cek update:', err);
-      Toast.error('Gagal memeriksa pembaruan.');
+      Toast.error('Gagal memeriksa pembaruan. Pastikan ada koneksi internet.');
       this.setUpdateStatus('IDLE');
     } finally {
       btn.disabled = false;
       icon.className = 'bx bx-refresh';
       checkingInfo.style.display = 'none';
     }
+  },
+
+  isNewerVersion(current, latest) {
+    const currParts = current.split('.').map(Number);
+    const latestParts = latest.split('.').map(Number);
+    for (let i = 0; i < 3; i++) {
+      const c = currParts[i] || 0;
+      const l = latestParts[i] || 0;
+      if (l > c) return true;
+      if (l < c) return false;
+    }
+    return false;
   },
 
   setUpdateStatus(status, newVersion = null) {
@@ -343,58 +353,20 @@ const Settings = {
   },
 
   async downloadAndInstallUpdate() {
-    const tauri = window.__TAURI__;
-    const updater = tauri?.updater || tauri?.plugins?.updater;
-
-    if (!tauri || !updater) {
-      Toast.warn('Fitur update hanya tersedia di aplikasi desktop.');
+    if (!this.updateInfo.url) {
+      Toast.warn('URL update tidak ditemukan.');
       return;
     }
 
-    const progressContainer = document.getElementById('update-progress-container');
-    const progressFill = document.getElementById('update-progress-fill');
-    const progressPercent = document.getElementById('update-percent');
-    const btnDownload = document.getElementById('btn-download-update');
-
-    try {
-      btnDownload.disabled = true;
-      progressContainer.style.display = 'block';
-
-      const update = await updater.check();
-      if (update && update.available) {
-        await update.downloadAndInstall((event) => {
-          const process = tauri?.process || tauri?.plugins?.process;
-          
-          switch (event.event) {
-            case 'Started':
-              console.log('Download started');
-              break;
-            case 'Progress':
-              const chunkLength = event.data.chunkLength;
-              const contentLength = event.data.contentLength;
-              if (contentLength) {
-                const percent = Math.round((chunkLength / contentLength) * 100);
-                progressFill.style.width = `${percent}%`;
-                progressPercent.textContent = `${percent}%`;
-              }
-              break;
-            case 'Finished':
-              Toast.success('Update selesai! Me-restart aplikasi...');
-              if (process) {
-                setTimeout(() => process.relaunch(), 2000);
-              } else {
-                Toast.info('Silakan restart aplikasi secara manual.');
-              }
-              break;
-          }
-        });
-      }
-    } catch (err) {
-      console.error('[Settings] Gagal download update:', err);
-      Toast.error('Gagal mengunduh pembaruan.');
-      progressContainer.style.display = 'none';
-      btnDownload.disabled = false;
+    // Buka link rilis GitHub di browser
+    const tauri = window.__TAURI__;
+    if (tauri && tauri.core) {
+      tauri.core.invoke('open-browser', { url: this.updateInfo.url });
+    } else {
+      window.open(this.updateInfo.url, '_blank');
     }
+    
+    Toast.info('Membuka halaman download di browser...');
   }
 };
 

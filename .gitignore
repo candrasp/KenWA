@@ -21,6 +21,7 @@ data/
 server/data/
 runtime/
 auth_info_baileys/
+promt.txt
 
 # Editor directories and files
 .vscode/*

@@ -1,6 +1,7 @@
 'use strict';
 
 const { getDb } = require('./db');
+const GlobalConfig = require('../global-config');
 
 /**
  * Initialize all tables on first run.
@@ -78,7 +79,7 @@ function initDb() {
   // 0. Migrate blast_history to individual log format
   const blastHistoryCols = db.prepare("PRAGMA table_info(blast_history)").all();
   if (blastHistoryCols.length > 0 && !blastHistoryCols.some(c => c.name === 'message')) {
-    console.log('[Schema] Migrating blast_history to message-log format...');
+    if (GlobalConfig.debug_log) console.log('[Schema] Migrating blast_history to message-log format...');
     db.exec("DROP TABLE blast_history;");
     db.exec(`
       CREATE TABLE blast_history (
@@ -97,7 +98,7 @@ function initDb() {
   // 1. Migrate Settings (If old format exists)
   const settingsCols = db.prepare("PRAGMA table_info(settings)").all();
   if (settingsCols.length > 0 && !settingsCols.some(c => c.name === 'user_id')) {
-    console.log('[Schema] Migrating old settings table...');
+    if (GlobalConfig.debug_log) console.log('[Schema] Migrating old settings table...');
     db.exec("DROP TABLE settings;");
     db.exec(`
       CREATE TABLE settings (
@@ -116,7 +117,7 @@ function initDb() {
   tables.forEach(table => {
     const cols = db.prepare(`PRAGMA table_info(${table})`).all();
     if (!cols.some(c => c.name === 'user_id')) {
-      console.log(`[Schema] Adding user_id to ${table}`);
+      if (GlobalConfig.debug_log) console.log(`[Schema] Adding user_id to ${table}`);
       db.exec(`ALTER TABLE ${table} ADD COLUMN user_id TEXT DEFAULT 'system';`);
     }
   });
@@ -132,7 +133,7 @@ function initDb() {
     db.exec("ALTER TABLE tags ADD COLUMN description TEXT DEFAULT '';");
   }
 
-  console.log('[Schema] Initialization complete.');
+  if (GlobalConfig.debug_log) console.log('[Schema] Initialization complete.');
 }
 
 module.exports = { initDb };

@@ -230,18 +230,37 @@ function showCustomContextMenu(e) {
 async function checkAutoUpdate(config) {
   if (config.update_enabled === false) return;
 
-  const tauri = window.__TAURI__;
-  const updater = tauri?.updater || tauri?.plugins?.updater;
-  if (!tauri || !updater) return;
-
   try {
-    const update = await updater.check();
-    if (update && update.available) {
-      showForcedUpdateModal(update);
+    const response = await fetch('https://api.github.com/repos/candrasp/KenWa/releases/latest');
+    if (!response.ok) return;
+    
+    const release = await response.json();
+    const latestVersion = release.tag_name.replace('v', '');
+    const currentVersion = config.version.replace('v', '');
+
+    // Bandingkan versi secara sederhana (asumsi semver ex: 1.1.0)
+    if (isNewerVersion(currentVersion, latestVersion)) {
+      showForcedUpdateModal({
+        version: latestVersion,
+        url: release.html_url,
+        notes: release.body
+      });
     }
   } catch (err) {
     console.error('[AutoUpdate] Gagal cek update:', err);
   }
+}
+
+function isNewerVersion(current, latest) {
+  const currParts = current.split('.').map(Number);
+  const latestParts = latest.split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    const c = currParts[i] || 0;
+    const l = latestParts[i] || 0;
+    if (l > c) return true;
+    if (l < c) return false;
+  }
+  return false;
 }
 
 function showForcedUpdateModal(update) {
@@ -285,7 +304,7 @@ function showForcedUpdateModal(update) {
         </div>
 
         <button id="btn-forced-update" class="btn btn-primary" style="width: 100%; background: var(--warning); color: #000; font-weight: 700; padding: var(--space-4);">
-          <i class='bx bx-cloud-download'></i> Update Sekarang
+          <i class='bx bx-cloud-download'></i> Download dari GitHub
         </button>
       </div>
     </div>
@@ -294,43 +313,13 @@ function showForcedUpdateModal(update) {
   document.body.appendChild(overlay);
 
   const btn = document.getElementById('btn-forced-update');
-  const progressContainer = document.getElementById('forced-update-progress');
-  const progressFill = document.getElementById('forced-fill');
-  const progressPercent = document.getElementById('forced-percent');
-
-  btn.onclick = async () => {
-    try {
-      btn.disabled = true;
-      btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Menyiapkan...";
-      progressContainer.style.display = 'block';
-
-      await update.downloadAndInstall((event) => {
-        const tauri = window.__TAURI__;
-        const process = tauri?.process || tauri?.plugins?.process;
-
-        switch (event.event) {
-          case 'Progress':
-            const chunkLength = event.data.chunkLength;
-            const contentLength = event.data.contentLength;
-            if (contentLength) {
-              const percent = Math.round((chunkLength / contentLength) * 100);
-              progressFill.style.width = `${percent}%`;
-              progressPercent.textContent = `${percent}%`;
-              btn.innerHTML = `<i class='bx bx-loader-alt bx-spin'></i> Mengunduh (${percent}%)`;
-            }
-            break;
-          case 'Finished':
-            btn.innerHTML = "<i class='bx bx-check'></i> Selesai! Me-restart...";
-            if (process) {
-              setTimeout(() => process.relaunch(), 1500);
-            }
-            break;
-        }
-      });
-    } catch (err) {
-      console.error('[ForcedUpdate] Error:', err);
-      btn.disabled = false;
-      btn.innerHTML = "<i class='bx bx-error'></i> Gagal, Coba Lagi";
+  btn.onclick = () => {
+    // Gunakan Tauri invoke atau window.open
+    const tauri = window.__TAURI__;
+    if (tauri && tauri.core) {
+      tauri.core.invoke('open-browser', { url: update.url });
+    } else {
+      window.open(update.url, '_blank');
     }
   };
 }
@@ -345,8 +334,68 @@ function setAppVersion(version) {
   }
 }
 
+async function performAppInitialization() {
+  const tauri = window.__TAURI__;
+  if (!tauri) return;
+
+  try {
+    const { invoke } = tauri.core;
+    // Tampilkan overlay inisialisasi
+    showInitializationOverlay();
+    
+    await invoke('initialize_app');
+    
+    // Sembunyikan overlay
+    hideInitializationOverlay();
+  } catch (err) {
+    console.error('[App] Gagal inisialisasi:', err);
+    const overlay = document.getElementById('init-overlay');
+    if (overlay) {
+      overlay.innerHTML = `<div class="init-content" style="color: var(--danger);">
+        <i class='bx bx-error-circle'></i>
+        <p>Gagal Inisialisasi: ${err}</p>
+        <button class="btn btn-primary" onclick="window.location.reload()">Coba Lagi</button>
+      </div>`;
+    }
+  }
+}
+
+function showInitializationOverlay() {
+  let overlay = document.getElementById('init-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'init-overlay';
+    overlay.style.cssText = `
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--bg-primary); z-index: 999999;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(10px);
+    `;
+    overlay.innerHTML = `
+      <div class="init-content" style="text-align: center;">
+        <div class="qr-spinner" style="margin: 0 auto 20px;"></div>
+        <h2 style="margin-bottom: 10px; color: var(--text-main);">KenWA is initializing...</h2>
+        <p style="color: var(--text-dim); font-size: 14px;">Menyiapkan struktur folder dan database...</p>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  }
+}
+
+function hideInitializationOverlay() {
+  const overlay = document.getElementById('init-overlay');
+  if (overlay) {
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity 0.5s ease';
+    setTimeout(() => overlay.remove(), 500);
+  }
+}
+
 (async () => {
-  // Load config pertama kali
+  // 0. Jalankan inisialisasi (Folder Check)
+  await performAppInitialization();
+
+  // 1. Load config pertama kali
   try {
     const config = await AppConfig.get();
     initSecurity(config);

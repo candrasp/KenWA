@@ -443,7 +443,6 @@ Server berjalan di `http://localhost:3721`. Semua endpoint diawali `/api/`.
 | `better-sqlite3` | `^11.9.1` | Driver SQLite sinkron |
 | `express` | `^4.21.2` | REST API framework |
 | `cors` | `^2.8.5` | Middleware CORS |
-| `pino` + `pino-pretty` | `^9.7.0` | Logger performa tinggi |
 | `qrcode` | `^1.5.4` | Generate QR code |
 | `nodemon` *(dev)* | `^3.1.0` | Auto-restart development |
 
@@ -510,9 +509,6 @@ Langkah 2: Susun folder distribusi
 
 > [!WARNING]
 > **Jangan commit** folder `server/data/auth/` ke Git! Berisi `creds.json` (kredensial sesi WhatsApp) yang bersifat sangat sensitif.
-
-> [!WARNING]
-> **`server.log`** dapat tumbuh sangat besar (ratusan MB) seiring penggunaan. Bersihkan secara berkala.
 
 > [!NOTE]
 > Port default server adalah **3721**. Pastikan tidak ada aplikasi lain yang menggunakan port ini. Port dapat diubah di `server/global-config.js`.

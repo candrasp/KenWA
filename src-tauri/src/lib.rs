@@ -10,14 +10,58 @@ use tauri::{Manager, Listener, Emitter};
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{TrayIconBuilder, TrayIconEvent, MouseButton};
 
-struct NodeProcess(Mutex<Option<Child>>);
+struct NodeProcess {
+    child: Mutex<Option<Child>>,
+    should_run: Mutex<bool>,
+    is_initialized: Mutex<bool>,
+}
 
 fn get_base_dir() -> PathBuf {
-    std::env::current_exe()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    let path = std::env::current_exe().unwrap();
+    
+    if cfg!(debug_assertions) {
+        // Di mode DEV, root adalah folder project (KenWa)
+        let mut p = std::env::current_dir().unwrap();
+        if p.ends_with("src-tauri") { p.pop(); }
+        p
+    } else {
+        // Di mode PROD, root adalah tempat .exe berada
+        path.parent().unwrap().to_path_buf()
+    }
+}
+
+fn perform_initialization_sync(state: &NodeProcess) -> Result<(), String> {
+    let root_dir = get_base_dir();
+    let server_dir = root_dir.join("server");
+    let data_dir = server_dir.join("data");
+    let auth_dir = data_dir.join("auth");
+
+    println!("[Rust] Root Dir: {:?}", root_dir);
+    println!("[Rust] Data Dir: {:?}", data_dir);
+
+    if !data_dir.exists() {
+        println!("[Rust] Creating data directory...");
+        std::fs::create_dir_all(&data_dir).map_err(|e| format!("Gagal membuat folder data: {}", e))?;
+    }
+    if !auth_dir.exists() {
+        println!("[Rust] Creating auth directory...");
+        std::fs::create_dir_all(&auth_dir).map_err(|e| format!("Gagal membuat folder auth: {}", e))?;
+    }
+
+    *state.is_initialized.lock().unwrap() = true;
+    println!("[Rust] Initialization success!");
+    Ok(())
+}
+
+#[tauri::command]
+async fn initialize_app(state: tauri::State<'_, NodeProcess>) -> Result<String, String> {
+    // Tetap sediakan command ini untuk UI jika ingin cek status, 
+    // tapi pengerjaan utamanya sudah dilakukan di setup.
+    if *state.is_initialized.lock().unwrap() {
+        return Ok("Already initialized".to_string());
+    }
+    perform_initialization_sync(&state)?;
+    Ok("Initialization complete".to_string())
 }
 
 fn is_server_running() -> bool {
@@ -29,19 +73,15 @@ fn is_server_running() -> bool {
 }
 
 fn start_server_internal(app: tauri::AppHandle, state: &NodeProcess) -> Result<String, String> {
+    if !*state.is_initialized.lock().unwrap() {
+        return Err("App belum diinisialisasi".to_string());
+    }
+    
     if is_server_running() {
         return Ok("Server sudah berjalan".to_string());
     }
 
-    // Resolve root dir (works for both dev and production)
-    let root_dir = if cfg!(debug_assertions) {
-        let mut p = std::env::current_dir().unwrap();
-        if p.ends_with("src-tauri") { p.pop(); }
-        p
-    } else {
-        get_base_dir()
-    };
-
+    let root_dir = get_base_dir();
     let node_exe  = root_dir.join("runtime").join("node").join("node.exe");
     let server_js = root_dir.join("server").join("index.js");
     let server_dir = root_dir.join("server");
@@ -104,7 +144,8 @@ fn start_server_internal(app: tauri::AppHandle, state: &NodeProcess) -> Result<S
         }
     });
 
-    *state.0.lock().unwrap() = Some(child);
+    *state.child.lock().unwrap() = Some(child);
+    *state.should_run.lock().unwrap() = true;
 
     for _ in 0..20 {
         std::thread::sleep(Duration::from_millis(500));
@@ -130,14 +171,33 @@ fn kill_node_process(mut child: Child) {
     let _ = child.kill();
 }
 
+fn stop_server_internal(state: &NodeProcess) {
+    let mut lock = state.child.lock().unwrap();
+    if let Some(child) = lock.take() {
+        kill_node_process(child);
+    }
+    *state.should_run.lock().unwrap() = false;
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let node_state = NodeProcess(Mutex::new(None));
+    let node_state = NodeProcess {
+        child: Mutex::new(None),
+        should_run: Mutex::new(false),
+        is_initialized: Mutex::new(false),
+    };
 
     tauri::Builder::default()
         .manage(node_state)
+        .invoke_handler(tauri::generate_handler![initialize_app])
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+            // JALANKAN INISIALISASI DI SINI (Sangat Aman)
+            let state = app.state::<NodeProcess>();
+            if let Err(e) = perform_initialization_sync(&state) {
+                eprintln!("Initialization failed: {}", e);
+            }
+
             // Setup Tray Menu
             let title_i = MenuItem::with_id(app, "title", "KenWa WhatsApp Blaster", false, None::<&str>)?;
             let toggle_i = MenuItem::with_id(app, "toggle", "▶ Start Server", true, None::<&str>)?;
@@ -160,22 +220,16 @@ pub fn run() {
                     match event.id.as_ref() {
                         "quit" => {
                             let state = app.state::<NodeProcess>();
-                            let mut lock = state.0.lock().unwrap();
-                            if let Some(child) = lock.take() {
-                                kill_node_process(child);
-                            }
+                            stop_server_internal(&state);
                             app.exit(0);
                         }
                         "toggle" => {
                             let state = app.state::<NodeProcess>();
                             let app_handle = app.clone();
                             if is_server_running() {
-                                let mut lock = state.0.lock().unwrap();
-                                if let Some(child) = lock.take() {
-                                    kill_node_process(child);
-                                    let _ = toggle_i_clone.set_text("▶ Start Server");
-                                    let _ = app_handle.emit("server-stopped", "success");
-                                }
+                                stop_server_internal(&state);
+                                let _ = toggle_i_clone.set_text("▶ Start Server");
+                                let _ = app_handle.emit("server-stopped", "success");
                             } else {
                                 let _ = toggle_i_clone.set_text("⏳ Starting...");
                                 let _ = toggle_i_clone.set_enabled(false);
@@ -233,12 +287,9 @@ pub fn run() {
             
             app.listen("stop-server", move |_event| {
                 let state = app_handle_stop.state::<NodeProcess>();
-                let mut lock = state.0.lock().unwrap();
-                if let Some(child) = lock.take() {
-                    kill_node_process(child);
-                    let _ = toggle_i_stop_event.set_text("▶ Start Server");
-                    let _ = app_handle_stop.emit("server-stopped", "success");
-                }
+                stop_server_internal(&state);
+                let _ = toggle_i_stop_event.set_text("▶ Start Server");
+                let _ = app_handle_stop.emit("server-stopped", "success");
             });
 
             app.listen("open-browser", move |event| {

@@ -5,10 +5,9 @@ const fs         = require('fs');
 const { execSync } = require('child_process');
 const qrcode     = require('qrcode');
 const IPCBridge  = require('../utils/ipc.bridge');
+const GlobalConfig = require('../global-config');
 
-const DATA_DIR = process.env.NODE_ENV === 'production' 
-  ? path.join(process.env.APPDATA || process.env.HOME || '.', 'KenWA', 'data')
-  : path.join(__dirname, '..', 'data');
+const DATA_DIR = path.join(__dirname, '..', 'data');
 
 const AUTH_FOLDER   = path.join(DATA_DIR, 'auth');
 const CONTACTS_FILE = path.join(DATA_DIR, 'contacts.json');
@@ -100,15 +99,20 @@ async function connect() {
     try {
       const latest = await fetchLatestBaileysVersion();
       version = latest.version;
-      console.log(`[WA] Menggunakan WA v${version.join('.')} (isLatest: ${latest.isLatest})`);
+      if (GlobalConfig.debug_log) {
+        console.log(`[WA] Menggunakan WA v${version.join('.')} (isLatest: ${latest.isLatest})`);
+      }
     } catch (e) {
-      console.warn('[WA] Gagal mengambil versi WA terbaru, pakai fallback.');
+      if (GlobalConfig.debug_log) {
+        console.warn('[WA] Gagal mengambil versi WA terbaru, pakai fallback.');
+      }
     }
 
     sock = makeWASocket({
       version,
       auth:                     state,
       printQRInTerminal:        false,
+      logger:                   require('pino')({ level: GlobalConfig.debug_log ? 'info' : 'silent' }),
       browser:                  Browsers.macOS('Desktop'),
       syncFullHistory:          true,
       markOnlineOnConnect:      false,
@@ -123,12 +127,16 @@ async function connect() {
 
     // ── Event: History sync (batch awal saat login) ──────────────────────────
     sock.ev.on('messaging-history.set', ({ contacts: c, isLatest, progress }) => {
-      console.log(`[WA] messaging-history.set: ${c?.length ?? 0} kontak, progress: ${progress ?? '?'}%, isLatest: ${isLatest}`);
+      if (GlobalConfig.debug_log) {
+        console.log(`[WA] messaging-history.set: ${c?.length ?? 0} kontak, progress: ${progress ?? '?'}%, isLatest: ${isLatest}`);
+      }
       if (c && c.length > 0) upsertContacts(c);
       if (typeof progress === 'number') syncProgress = progress;
       if (isLatest) {
         syncProgress = 100;
-        console.log(`[WA] History sync selesai. Total kontak di memori: ${Object.keys(contacts).length}`);
+        if (GlobalConfig.debug_log) {
+          console.log(`[WA] History sync selesai. Total kontak di memori: ${Object.keys(contacts).length}`);
+        }
       }
     });
 

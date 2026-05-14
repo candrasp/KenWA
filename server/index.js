@@ -108,16 +108,16 @@ app.get('/api/health', (_req, res) => res.json({ status: 'ok', ts: Date.now() })
 // ── Bootstrap ───────────────────────────────────────────────────────────────
 async function bootstrap() {
   try {
-    console.log('[Bootstrap] Initializing database...');
+    if (GlobalConfig.debug_log) console.log('[Bootstrap] Initializing database...');
     initDb();
-    console.log('[Bootstrap] Database initialized.');
+    if (GlobalConfig.debug_log) console.log('[Bootstrap] Database initialized.');
 
-    console.log(`[Bootstrap] Starting express server on port ${PORT}...`);
+    if (GlobalConfig.debug_log) console.log(`[Bootstrap] Starting express server on port ${PORT}...`);
     const server = app.listen(PORT, '127.0.0.1', () => {
       console.log(`[Bootstrap] KenWA server listening on http://127.0.0.1:${PORT}`);
 
       // Auto-connect WhatsApp session on startup
-      console.log('[Bootstrap] Connecting to WhatsApp...');
+      if (GlobalConfig.debug_log) console.log('[Bootstrap] Connecting to WhatsApp...');
       waService.connect().catch(err => {
         console.error('[Bootstrap] Failed to auto-connect WhatsApp:', err.message);
       });
