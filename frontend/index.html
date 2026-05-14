@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="KenWA — WhatsApp Blaster berbasis Tauri, Express, dan Baileys" />
+  <title>KenWA — WhatsApp Blaster</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🟢</text></svg>">
+
+  <!-- Icons & Styles -->
+  <link rel="stylesheet" href="css/boxicons.min.css">
+  <!-- Plus Jakarta Sans Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/main.css" />
+
+  <!-- App entry -->
+  <script type="module" src="js/main.js"></script>
+</head>
+
+<body>
+  <div id="app">
+    <!-- Sidebar ditulis oleh js/components/Sidebar.js -->
+    <nav id="sidebar" aria-label="Navigasi utama"></nav>
+
+    <!-- Konten utama diisi oleh router -->
+    <main id="main-content">
+      <div id="view-container" role="main"></div>
+    </main>
+  </div>
+
+  <div id="toast-container" aria-live="polite"></div>
+
+  <footer id="global-footer">
+    <div class="footer-copyright">
+      &copy; 2026 <strong>KenWA</strong> | Developed by <strong>CandraSP</strong>
+    </div>
+    <div class="footer-version" id="app-version">v1.1.0</div>
+  </footer>
+
+  <!-- Modal container (diisi oleh komponen Modal) -->
+  <div id="modal-container"></div>
+</body>
+
+</html>

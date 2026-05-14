@@ -1,0 +1,10 @@
+buat logika begini :
+
+jika tombol start di klik maka memerintahkan node server untuk berjalan
+selama proses tombol menampilkan loading dengan tulisan starting
+setelah node server berhasil berjalan 
+maka tombol akan menjadi tombol stop server dan button itu berwarna denger 
+
+
+buat system tray, dimana hanya menampilkan start stop dan quit dan paling atas ada nama aplikasi kenwa
+jadi window utama boleh di minimize atau close dan tidak mematikan server

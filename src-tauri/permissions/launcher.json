@@ -1,0 +1,7 @@
+{
+  "identifier": "allow-start-node-server",
+  "description": "Allows starting the node server",
+  "commands": [
+    "start_node_server"
+  ]
+}

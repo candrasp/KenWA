@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KenWa Launcher</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="top-actions">
+    <button id="terminal-toggle" class="icon-btn" title="Toggle Terminal">
+      <svg class="icon-terminal" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="4 17 10 11 4 5"></polyline>
+        <line x1="12" y1="19" x2="20" y2="19"></line>
+      </svg>
+      <svg class="icon-close" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+
+  <div class="launcher-container">
+    <h1>KenWa - WhatsApp Blaster</h1>
+    <div class="subtitle">Premium WhatsApp Gateway System</div>
+
+    <!-- Error Modal -->
+    <div id="error-overlay" class="error-overlay">
+      <div class="error-modal">
+        <h2>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          System Error
+        </h2>
+        <p id="error-message">Runtime Node.js tidak ditemukan!</p>
+        <button id="close-error" class="btn-close">Mengerti</button>
+      </div>
+    </div>
+
+    <div class="status-card rack-1u">
+      <div class="rack-ear left"></div>
+      <div class="rack-content">
+        <div class="rack-vents"></div>
+        <div class="rack-info">
+          <span class="unit-label">KENWA UNIT-01</span>
+        </div>
+        <div class="rack-status">
+          <div class="led-group">
+            <span class="led-label">PWR</span>
+            <span class="led led-pwr"></span>
+          </div>
+          <div class="led-group">
+            <span class="led-label">SRV</span>
+            <span id="status-led" class="led led-status"></span>
+          </div>
+          <div id="status-display" class="rack-lcd">
+            <div class="rack-stats">
+              <span>U: <span id="up-speed">0.0</span> KB/s</span>
+              <span>D: <span id="down-speed">0.0</span> KB/s</span>
+            </div>
+            <div id="traffic-graph" class="rack-graph">
+              <svg viewBox="0 0 100 20" preserveAspectRatio="none">
+                <path class="graph-line"
+                  d="M0,10 C5,10 5,13 10,13 C15,13 15,7 20,7 C25,7 25,14 30,14 C35,14 35,8 40,8 C45,8 45,12 50,12 C55,12 55,7 60,7 C65,7 65,14 70,14 C75,14 75,8 80,8 C85,8 85,12 90,12 C95,12 95,7 100,10 C105,10 105,13 110,13 C115,13 115,7 120,7 C125,7 125,14 130,14 C135,14 135,8 140,8 C145,8 145,12 150,12 C155,12 155,7 160,7 C165,7 165,14 170,14 C175,14 175,8 180,8 C185,8 185,12 190,12 C195,12 195,7 200,10" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="rack-ear right"></div>
+    </div>
+
+    <div class="button-group">
+      <button id="start-btn" class="btn btn-primary">
+        <span id="btn-loader" class="loader"></span>
+        <span id="btn-text">Start Server</span>
+      </button>
+
+      <button id="open-btn" class="btn btn-whatsapp">
+        Buka WhatsApp
+      </button>
+    </div>
+
+    <div class="log-container">
+      <div class="log-header">
+        <span>Terminal Output</span>
+        <span id="log-status">Ready</span>
+      </div>
+      <div id="log-output">Waiting for server logs...</div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    &copy; <strong>KenWa</strong> | developed by <a href="https://github.com/candrasp" target="_blank">CandraSP</a> |
+    v1.1.0
+  </footer>
+
+  <script type="module">
+    const { emit, listen } = window.__TAURI__.event;
+    const { invoke } = window.__TAURI__.core;
+
+    const startBtn = document.getElementById('start-btn');
+    const openBtn = document.getElementById('open-btn');
+    const statusLed = document.getElementById('status-led');
+    const statusDisplay = document.getElementById('status-display');
+    const upSpeed = document.getElementById('up-speed');
+    const downSpeed = document.getElementById('down-speed');
+    const btnLoader = document.getElementById('btn-loader');
+    const btnText = document.getElementById('btn-text');
+    const logOutput = document.getElementById('log-output');
+    const logStatus = document.getElementById('log-status');
+    const logContainer = document.querySelector('.log-container');
+    const terminalToggle = document.getElementById('terminal-toggle');
+
+    let isServerRunning = false;
+
+    terminalToggle.addEventListener('click', () => {
+      const isVisible = logContainer.classList.toggle('visible');
+      terminalToggle.classList.toggle('active');
+
+      // Toggle icons
+      document.querySelector('.icon-terminal').style.display = isVisible ? 'none' : 'block';
+      document.querySelector('.icon-close').style.display = isVisible ? 'block' : 'none';
+
+      // Scroll to bottom when opened
+      if (isVisible) {
+        logOutput.scrollTop = logOutput.scrollHeight;
+      }
+    });
+
+    // Listen for server logs from Rust
+    listen('server-log', (event) => {
+      const line = event.payload;
+      if (logOutput.textContent === 'Waiting for server logs...') {
+        logOutput.textContent = '';
+      }
+      logOutput.textContent += line + '\n';
+      logOutput.scrollTop = logOutput.scrollHeight;
+    });
+
+    // Listen for server-started event from Rust
+    listen('server-started', (event) => {
+      const result = event.payload;
+      if (result === 'success') {
+        isServerRunning = true;
+        statusLed.classList.add('online');
+        statusDisplay.classList.add('online');
+
+        // Start traffic simulation
+        const trafficInterval = setInterval(() => {
+          if (!isServerRunning) {
+            clearInterval(trafficInterval);
+            return;
+          }
+          upSpeed.textContent = (Math.random() * 20 + 5).toFixed(1);
+          downSpeed.textContent = (Math.random() * 60 + 10).toFixed(1);
+        }, 2500);
+
+        btnLoader.style.display = 'none';
+        btnText.textContent = 'Stop Server';
+        startBtn.classList.remove('btn-primary');
+        startBtn.classList.add('btn-danger');
+        startBtn.disabled = false;
+
+        logStatus.textContent = 'Streaming';
+        openBtn.style.display = 'flex';
+      } else {
+        showError(result);
+        resetButton();
+      }
+    });
+
+    // Listen for server-stopped event from Rust
+    listen('server-stopped', (event) => {
+      isServerRunning = false;
+      statusLed.classList.remove('online');
+      statusDisplay.classList.remove('online');
+
+      logStatus.textContent = 'Stopped';
+      resetButton();
+      openBtn.style.display = 'none';
+    });
+
+    function resetButton() {
+      startBtn.disabled = false;
+      btnLoader.style.display = 'none';
+      btnText.textContent = 'Start Server';
+      startBtn.classList.remove('btn-danger');
+      startBtn.classList.add('btn-primary');
+    }
+
+    startBtn.addEventListener('click', async () => {
+      if (!isServerRunning) {
+        // START LOGIC
+        startBtn.disabled = true;
+        btnLoader.style.display = 'inline-block';
+        btnText.textContent = 'Starting...';
+        logOutput.textContent = 'Initializing server...\n';
+        logStatus.textContent = 'Connecting...';
+        await emit('start-server');
+      } else {
+        // STOP LOGIC
+        startBtn.disabled = true;
+        btnText.textContent = 'Stopping...';
+        await emit('stop-server');
+      }
+    });
+
+    openBtn.addEventListener('click', async () => {
+      await emit('open-browser', 'http://localhost:3721');
+    });
+
+    // Disable Right-Click Context Menu
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // Error Handling
+    const errorOverlay = document.getElementById('error-overlay');
+    const errorMessage = document.getElementById('error-message');
+    const closeError = document.getElementById('close-error');
+
+    function showError(msg) {
+      errorMessage.textContent = msg;
+      errorOverlay.style.display = 'flex';
+    }
+
+    closeError.addEventListener('click', () => {
+      errorOverlay.style.display = 'none';
+    });
+  </script>
+</body>
+
+</html>
