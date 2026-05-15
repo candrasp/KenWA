@@ -3,9 +3,9 @@
  * Inisialisasi sidebar, router, dan Tauri event listeners.
  */
 
-import Router    from './router.js';
-import Sidebar   from './components/Sidebar.js';
-import IPC       from './services/ipc.js';
+import Router from './router.js';
+import Sidebar from './components/Sidebar.js';
+import IPC from './services/ipc.js';
 
 // ── Global Image Error Handler (untuk mengatasi CSP pada Avatar) ───────────
 document.addEventListener('error', (e) => {
@@ -13,23 +13,23 @@ document.addEventListener('error', (e) => {
     const img = e.target;
     if (img.dataset.fallbackApplied) return;
     img.dataset.fallbackApplied = 'true';
-    
+
     const name = window.waUser?.name || 'User';
     img.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=282828&color=4caf82&bold=true`;
   }
 }, true);
 
 // ── Global State ───────────────────────────────────────────────────────────
-window.isWaConnected    = false;
+window.isWaConnected = false;
 window.isWaReconnecting = false;
-window.waUser           = null;
+window.waUser = null;
 
 // ── Daftarkan semua halaman ────────────────────────────────────────────────
 Router.register('/dashboard', () => import('./pages/Dashboard.js'));
-Router.register('/login',     () => import('./pages/Login.js'));
-Router.register('/contacts',  () => import('./pages/Contacts.js'));
-Router.register('/blast',     () => import('./pages/Blast.js'));
-Router.register('/settings',  () => import('./pages/Settings.js'));
+Router.register('/login', () => import('./pages/Login.js'));
+Router.register('/contacts', () => import('./pages/Contacts.js'));
+Router.register('/blast', () => import('./pages/Blast.js'));
+Router.register('/settings', () => import('./pages/Settings.js'));
 
 // ── Auth Guard Logic ───────────────────────────────────────────────────────
 Router.beforeEach(async (to) => {
@@ -52,7 +52,7 @@ async function syncStatus() {
   try {
     const status = await WaAPI.status();
     window.isWaConnected = status.connected;
-    
+
     // Simpan QR jika ada di status (hasil cache backend)
     if (status.qr && !status.connected) {
       window.lastQR = status.qr;
@@ -60,7 +60,7 @@ async function syncStatus() {
 
     // Gunakan sessionUser jika sedang reconnecting agar UI tetap menampilkan info user
     window.waUser = status.user || status.sessionUser;
-    
+
     // Jika di backend ada session tapi belum 'connected', berarti kemungkinan sedang reconnecting
     if (!status.connected && status.sessionUser) {
       window.isWaReconnecting = true;
@@ -96,7 +96,7 @@ IPC.onWaQR((payload) => {
   window.lastQR = payload.qr;
   window.isWaConnected = false;
   window.isWaReconnecting = false;
-  
+
   if (window.location.hash !== '#/login') {
     Router.navigate('/login');
   }
@@ -109,10 +109,10 @@ IPC.onWaQR((payload) => {
 IPC.onWaReady((payload) => {
   window.isWaConnected = true;
   window.isWaReconnecting = false;
-  window.waUser        = payload.user;
-  window.lastQR        = null; // Clear QR cache setelah berhasil connect
+  window.waUser = payload.user;
+  window.lastQR = null; // Clear QR cache setelah berhasil connect
   document.dispatchEvent(new CustomEvent('wa:ready', { detail: payload }));
-  
+
   // Hanya pindah ke dashboard jika saat ini sedang di halaman login
   if (window.location.hash === '#/login' || window.location.hash === '') {
     Router.navigate('/dashboard');
@@ -121,7 +121,7 @@ IPC.onWaReady((payload) => {
 
 IPC.onWaDisconnected((payload) => {
   console.log('[IPC] WhatsApp terputus:', payload);
-  
+
   // Jika ini hanya putus sementara (reconnecting), jangan paksa ke login
   if (payload && payload.isTemporary) {
     window.isWaConnected = false;
@@ -233,7 +233,7 @@ async function checkAutoUpdate(config) {
   try {
     const response = await fetch('https://api.github.com/repos/candrasp/KenWa/releases/latest');
     if (!response.ok) return;
-    
+
     const release = await response.json();
     const latestVersion = release.tag_name.replace('v', '');
     const currentVersion = config.version.replace('v', '');
@@ -342,9 +342,9 @@ async function performAppInitialization() {
     const { invoke } = tauri.core;
     // Tampilkan overlay inisialisasi
     showInitializationOverlay();
-    
+
     await invoke('initialize_app');
-    
+
     // Sembunyikan overlay
     hideInitializationOverlay();
   } catch (err) {
@@ -405,7 +405,7 @@ function hideInitializationOverlay() {
     setTimeout(() => checkAutoUpdate(config), 3000);
   } catch (err) {
     console.warn('[App] Gagal memuat config saat startup, akan retry saat server-ready:', err.message);
-    
+
     // Fallback: Retry saat server-ready SSE event diterima (production: server mungkin belum siap)
     IPC.listen('server-ready', async () => {
       try {
@@ -421,7 +421,7 @@ function hideInitializationOverlay() {
   await syncStatus();
   // Sync status setiap 15 detik sebagai fallback
   setInterval(syncStatus, 15000);
-  
+
   Sidebar.mount(document.getElementById('sidebar'));
   Router.init();
 })();

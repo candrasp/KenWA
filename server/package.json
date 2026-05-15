@@ -1,12 +1,11 @@
 {
   "name": "kenwa-server",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "KenWA Backend - Express + Baileys + better-sqlite3",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js",
-    "build:win": "caxa --input . --output ../src-tauri/binaries/node-server-x86_64-pc-windows-msvc.exe -- \"{{caxa}}/node_modules/.bin/node\" \"{{caxa}}/index.js\""
+    "dev": "nodemon index.js"
   },
   "dependencies": {
     "@whiskeysockets/baileys": "^7.0.0-rc10",

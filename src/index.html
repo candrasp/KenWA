@@ -10,6 +10,14 @@
 
 <body>
   <div class="top-actions">
+    <button id="help-toggle" class="icon-btn" title="Panduan Penggunaan">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+    </button>
     <button id="terminal-toggle" class="icon-btn" title="Toggle Terminal">
       <svg class="icon-terminal" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -42,6 +50,74 @@
         </h2>
         <p id="error-message">Runtime Node.js tidak ditemukan!</p>
         <button id="close-error" class="btn-close">Mengerti</button>
+      </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-overlay" class="help-overlay">
+      <div class="help-modal">
+        <h2>Panduan Penggunaan</h2>
+        <div class="help-content">
+          <div class="help-item">
+            <div class="help-step">1</div>
+            <div class="help-text">
+              <strong>Mulai Server</strong>
+              <p>Klik tombol <span>Start Server</span> untuk mengaktifkan sistem backend.</p>
+            </div>
+          </div>
+          <div class="help-item">
+            <div class="help-step">2</div>
+            <div class="help-text">
+              <strong>Pantau Status</strong>
+              <p>Tunggu hingga lampu indikator <span>SRV</span> berwarna hijau dan layar LCD menampilkan trafik data.
+              </p>
+            </div>
+          </div>
+          <div class="help-item">
+            <div class="help-step">3</div>
+            <div class="help-text">
+              <strong>Akses Dashboard</strong>
+              <p>Setelah status <span>Streaming</span>, klik tombol <span>Buka WhatsApp</span> untuk masuk ke panel
+                utama.</p>
+            </div>
+          </div>
+          <div class="help-item">
+            <div class="help-step">4</div>
+            <div class="help-text">
+              <strong>Monitoring</strong>
+              <p>Gunakan ikon terminal di pojok kanan atas untuk melihat aktivitas sistem secara real-time.</p>
+            </div>
+          </div>
+          <div class="help-item">
+            <div class="help-step">5</div>
+            <div class="help-text">
+              <strong>Troubleshooting</strong>
+              <p>Jika server gagal jalan, pastikan tidak ada aplikasi lain yang menggunakan port 3721 atau 3000.</p>
+            </div>
+          </div>
+          <div class="help-item">
+            <div class="help-step">6</div>
+            <div class="help-text">
+              <strong>Update & Maintenance</strong>
+              <p>Cek pembaruan secara berkala di repository resmi untuk fitur terbaru dan perbaikan bug.</p>
+            </div>
+          </div>
+          <div class="help-item">
+            <div class="help-step">7</div>
+            <div class="help-text">
+              <strong>Kebutuhan Sistem</strong>
+              <p>Pastikan koneksi internet stabil untuk proses sinkronisasi WhatsApp Web yang lancar.</p>
+            </div>
+          </div>
+          <div class="help-item">
+            <div class="help-step">8</div>
+            <div class="help-text">
+              <strong>Menutup Aplikasi</strong>
+              <p>Menutup jendela tidak akan mematikan sistem. Aplikasi akan tetap berjalan di <span>System Tray</span> (pojok kanan bawah Taskbar). Klik kanan ikon KenWa dan pilih <span>❌ Quit KenWa</span> untuk keluar sepenuhnya.</p>
+            </div>
+          </div>
+        </div>
+        <button id="close-help" class="btn btn-primary">Tutup Panduan</button>
       </div>
     </div>
 
@@ -99,8 +175,8 @@
   </div>
 
   <footer class="footer">
-    &copy; <strong>KenWa</strong> | developed by <a href="https://github.com/candrasp" target="_blank">CandraSP</a> |
-    v1.1.0
+    &copy; <strong>KenWa</strong> | developed by <a href="https://github.com/candrasp" target="_blank">CandraSP</a>
+
   </footer>
 
   <script type="module">
@@ -119,8 +195,19 @@
     const logStatus = document.getElementById('log-status');
     const logContainer = document.querySelector('.log-container');
     const terminalToggle = document.getElementById('terminal-toggle');
+    const helpToggle = document.getElementById('help-toggle');
+    const helpOverlay = document.getElementById('help-overlay');
+    const closeHelp = document.getElementById('close-help');
 
     let isServerRunning = false;
+
+    helpToggle.addEventListener('click', () => {
+      helpOverlay.style.display = 'flex';
+    });
+
+    closeHelp.addEventListener('click', () => {
+      helpOverlay.style.display = 'none';
+    });
 
     terminalToggle.addEventListener('click', () => {
       const isVisible = logContainer.classList.toggle('visible');

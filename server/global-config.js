@@ -6,7 +6,7 @@
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Baca versi dari package.json — di dalam caxa bundle bisa gagal, gunakan fallback
-let appVersion = '1.1.0'; // ← update ini saat bump versi
+let appVersion = '1.1.2'; // ← update ini saat bump versi
 try {
   const pkg = require('./package.json');
   if (pkg && pkg.version) appVersion = pkg.version;

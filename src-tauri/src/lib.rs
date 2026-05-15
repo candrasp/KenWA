@@ -129,6 +129,16 @@ fn start_server_internal(app: tauri::AppHandle, state: &NodeProcess) -> Result<S
         let reader = BufReader::new(stdout);
         for line in reader.lines() {
             if let Ok(l) = line {
+                // Coba parse sebagai JSON untuk event khusus
+                if l.starts_with('{') && l.ends_with('}') {
+                    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&l) {
+                        if let (Some(event), Some(payload)) = (json["event"].as_str(), json.get("payload")) {
+                            let _ = app_stdout.emit(event, payload);
+                            continue;
+                        }
+                    }
+                }
+                // Fallback ke server-log
                 let _ = app_stdout.emit("server-log", l);
             }
         }

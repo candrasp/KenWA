@@ -22,6 +22,9 @@ server/data/
 runtime/
 auth_info_baileys/
 promt.txt
+rancangan.md
+build_portable.bat
+dist_portable/
 
 # Editor directories and files
 .vscode/*

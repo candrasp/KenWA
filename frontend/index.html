@@ -37,11 +37,52 @@
     <div class="footer-copyright">
       &copy; 2026 <strong>KenWA</strong> | Developed by <strong>CandraSP</strong>
     </div>
-    <div class="footer-version" id="app-version">v1.1.0</div>
+    <div class="footer-version" id="app-version"></div>
   </footer>
 
   <!-- Modal container (diisi oleh komponen Modal) -->
   <div id="modal-container"></div>
+
+  <!-- Offline Modal Overlay -->
+  <div id="offline-overlay"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999999; backdrop-filter:blur(8px); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px;">
+    <div
+      style="background:var(--bg-panel); border:1px solid var(--danger); padding:40px; border-radius:16px; max-width:400px; box-shadow:0 0 30px rgba(224,92,92,0.2);">
+      <i class='bx bx-wifi-off' style="font-size:64px; color:var(--danger); margin-bottom:20px; display:block;"></i>
+      <h2 style="color:var(--text-main); margin-bottom:10px;">Server KenWa Offline</h2>
+      <p style="color:var(--text-dim); margin-bottom:30px; font-size:14px; line-height:1.6;">
+        Koneksi ke backend terputus atau server belum dijalankan. Pastikan aplikasi KenWa sudah berjalan dan server
+        sudah menyala.
+      </p>
+      <button onclick="window.location.reload()" class="btn btn-primary"
+        style="width:100%; height:44px; background:var(--danger); color:#fff; border-color:var(--danger);">
+        Coba Hubungkan Kembali
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Logika Cek Koneksi Server
+    async function checkServerStatus() {
+      const offlineOverlay = document.getElementById('offline-overlay');
+      try {
+        // Coba fetch ke API config sebagai heartbeat
+        const response = await fetch('/api/config', { cache: 'no-store' });
+        if (response.ok) {
+          offlineOverlay.style.display = 'none';
+        } else {
+          offlineOverlay.style.display = 'flex';
+        }
+      } catch (error) {
+        offlineOverlay.style.display = 'flex';
+      }
+    }
+
+    // Cek setiap 5 detik
+    setInterval(checkServerStatus, 5000);
+    // Cek saat pertama kali load
+    window.addEventListener('load', checkServerStatus);
+  </script>
 </body>
 
 </html>
